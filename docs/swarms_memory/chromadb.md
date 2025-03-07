@@ -1,32 +1,34 @@
-# ChromaDB Documentation
+# ChromaDB in Swarms-Memory
 
-ChromaDB is a specialized module designed to facilitate the storage and retrieval of documents using the ChromaDB system. It offers functionalities for adding documents to a local ChromaDB collection and querying this collection based on provided query texts. This module integrates with the ChromaDB client to create and manage collections, leveraging various configurations for optimizing the storage and retrieval processes.
+## Overview
 
+ChromaDB is a powerful, open-source embedding database that is designed for AI applications. It allows you to store embeddings alongside their metadata and perform similarity searches to retrieve relevant information. Swarms-Memory provides seamless integration with ChromaDB, making it easy to incorporate vector storage and retrieval into your multi-agent systems.
 
-#### Parameters
+## Key Features
 
-| Parameter      | Type              | Default  | Description                                                 |
-|----------------|-------------------|----------|-------------------------------------------------------------|
-| `metric`       | `str`             | `"cosine"`| The similarity metric to use for the collection.             |
-| `output_dir`   | `str`             | `"swarms"`| The name of the collection to store the results in.         |
-| `limit_tokens` | `Optional[int]`   | `1000`   | The maximum number of tokens to use for the query.          |
-| `n_results`    | `int`             | `1`      | The number of results to retrieve.                          |
-| `docs_folder`  | `Optional[str]`   | `None`   | The folder containing documents to be added to the collection.|
-| `verbose`      | `bool`            | `False`  | Flag to enable verbose logging for debugging.               |
-| `*args`        | `tuple`           | `()`     | Additional positional arguments.                            |
-| `**kwargs`     | `dict`            | `{}`     | Additional keyword arguments.                               |
+- **Vector Storage**: Efficiently stores and indexes vector embeddings.
+- **Similarity Search**: Performs fast and accurate similarity searches to retrieve relevant data based on vector similarity.
+- **Metadata Filtering**: Allows you to filter search results based on metadata associated with embeddings.
+- **Persistence**: Supports persistent storage of data to disk.
+- **Client-Server and In-Memory Modes**: Can be used in both client-server and in-memory configurations.
+- **Customizable**: Offers various options for customization, including distance metrics and indexing parameters.
 
-#### Methods
+## Parameters
 
-| Method                | Description                                              |
-|-----------------------|----------------------------------------------------------|
-| `__init__`            | Initializes the ChromaDB instance with specified parameters. |
-| `add`                 | Adds a document to the ChromaDB collection.              |
-| `query`               | Queries documents from the ChromaDB collection based on the query text. |
-| `traverse_directory`  | Traverses the specified directory to add documents to the collection. |
+When initializing ChromaDB in Swarms-Memory, you can configure the following parameters:
 
+| Parameter     | Description                                                                 | Default Value |
+|---------------|-----------------------------------------------------------------------------|---------------|
+| `metric`        | Distance metric to use for similarity search (e.g., "cosine", "l2", "ip"). | `"cosine"`    |
+| `output_dir`    | Directory to store ChromaDB data (for persistent storage).                 | `"results"`   |
+| `limit_tokens`  | Maximum number of tokens to consider for document indexing.                | `1000`        |
+| `n_results`     | Number of search results to return.                                        | `2`           |
+| `docs_folder`   | Path to a folder containing documents to index (optional).                 | `None`        |
+| `verbose`       | Enable verbose logging.                                                     | `False`       |
 
-## Usage
+## Usage Examples
+
+### Basic Initialization
 
 ```python
 from swarms_memory import ChromaDB
@@ -34,108 +36,70 @@ from swarms_memory import ChromaDB
 chromadb = ChromaDB(
     metric="cosine",
     output_dir="results",
-    limit_tokens=1000,
-    n_results=2,
-    docs_folder="path/to/docs",
     verbose=True,
 )
 ```
 
-### Adding Documents
-
-The `add` method allows you to add a document to the ChromaDB collection. It generates a unique ID for each document and adds it to the collection.
-
-#### Parameters
-
-| Parameter     | Type   | Default | Description                                 |
-|---------------|--------|---------|---------------------------------------------|
-| `document`    | `str`  | -       | The document to be added to the collection. |
-| `*args`       | `tuple`| `()`    | Additional positional arguments.            |
-| `**kwargs`    | `dict` | `{}`    | Additional keyword arguments.               |
-
-#### Returns
-
-| Type  | Description                          |
-|-------|--------------------------------------|
-| `str` | The ID of the added document.        |
-
-#### Example
+### Adding and Querying Documents
 
 ```python
-task = "example_task"
-result = "example_result"
-result_id = chromadb.add(document="This is a sample document.")
-print(f"Document ID: {result_id}")
+chromadb.add("This is a document about Swarms agents.", {"source": "doc1"})
+chromadb.add("Swarms framework enables multi-agent collaboration.", {"source": "doc2"})
+
+results = chromadb.query("What are Swarms agents?", n_results=3)
+
+for result in results:
+    print(f"Document ID: {result['id']}")
+    print(f"Text: {result['document']}")
+    print(f"Metadata: {result['metadatas']}")
+    print(f"Distance: {result['distances']}")
+    print("---")
 ```
 
-### Querying Documents
-
-The `query` method allows you to retrieve documents from the ChromaDB collection based on the provided query text.
-
-#### Parameters
-
-| Parameter   | Type   | Default | Description                            |
-|-------------|--------|---------|----------------------------------------|
-| `query_text`| `str`  | -       | The query string to search for.        |
-| `*args`     | `tuple`| `()`    | Additional positional arguments.       |
-| `**kwargs`  | `dict` | `{}`    | Additional keyword arguments.          |
-
-#### Returns
-
-| Type  | Description                          |
-|-------|--------------------------------------|
-| `str` | The retrieved documents as a string. |
-
-#### Example
+### Traversing a Directory of Documents
 
 ```python
-query_text = "search term"
-results = chromadb.query(query_text=query_text)
-print(f"Retrieved Documents: {results}")
-```
-
-### Traversing Directory
-
-The `traverse_directory` method traverses through every file in the specified directory and its subdirectories, adding the contents of each file to the ChromaDB collection.
-
-#### Example
-
-```python
+chromadb = ChromaDB(docs_folder="path/to/your/documents")
 chromadb.traverse_directory()
+
+results = chromadb.query("Find information about Swarms.", n_results=5)
+# ... process results ...
 ```
 
-## Additional Information and Tips
+## Advanced Features
 
-### Verbose Logging
+### Metadata Filtering
 
-Enable the `verbose` flag during initialization to get detailed logs of the operations, which is useful for debugging.
+ChromaDB allows you to filter search results based on metadata. For example:
 
 ```python
-chromadb = ChromaDB(verbose=True)
+results = chromadb.query(
+    "Search for documents about agents.",
+    n_results=3,
+    filter={"source": "doc1"}
+)
 ```
 
-### Handling Large Documents
+### Distance Metrics
 
-When dealing with large documents, consider using the `limit_tokens` parameter to restrict the number of tokens processed in a single query.
+You can choose different distance metrics based on your needs. Common metrics include:
+
+- `"cosine"`: Cosine similarity (default).
+- `"l2"`: L2 distance (Euclidean distance).
+- `"ip"`: Inner product.
+
+Specify the metric during ChromaDB initialization:
 
 ```python
-chromadb = ChromaDB(limit_tokens=500)
+chromadb = ChromaDB(metric="l2")
 ```
 
-### Optimizing Query Performance
+### Persistent Storage
 
-Use the appropriate similarity metric (`metric` parameter) that suits your use case for optimal query performance.
+By default, ChromaDB stores data in the `output_dir` specified during initialization. This ensures data persistence across sessions.
 
-```python
-chromadb = ChromaDB(metric="euclidean")
-```
+## More Information
 
-## References and Resources
+For more detailed information about ChromaDB, refer to the official [ChromaDB documentation](https://chromadb.com/docs).
 
-- [ChromaDB Documentation](https://chromadb.io/docs)
-- [Python UUID Module](https://docs.python.org/3/library/uuid.html)
-- [Python os Module](https://docs.python.org/3/library/os.html)
-- [Python logging Module](https://docs.python.org/3/library/logging.html)
-- [dotenv Package](https://pypi.org/project/python-dotenv/)
-
-By following this documentation, users can effectively utilize the ChromaDB module for managing document storage and retrieval in their applications.
+---

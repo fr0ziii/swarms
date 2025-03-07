@@ -281,6 +281,7 @@ nav:
       - Deploying Swarms on Google Cloud Run: "swarms_cloud/cloud_run.md"
   - Swarms Memory:
     - Overview: "swarms_memory/index.md"
+    - Conceptual Overview: "swarms_memory/memory_overview.md"
     - Memory Systems:
       - ChromaDB: "swarms_memory/chromadb.md"
       - Pinecone: "swarms_memory/pinecone.md"
